@@ -5,7 +5,7 @@
 'use strict';
 var http = require("http");
 var log = require('./log.js').helper;
-var redisClient = require('./redisClient');
+var redisClient = require('./redisclient');
 var post = require('./post');
 var querystring = require('querystring');
 
@@ -33,7 +33,7 @@ var httpServer = http.createServer(function (req, res) {
                 redisClient.hincrby(ret.id + 'PLANT', "money", ret.money, function(err, redis) {
                     if (!err) {
                         var obj = {cmdID : '1030', uid : ret.id};
-                        log.writeDebug(uid + 'charge ' + ret.money);
+                        log.writeDebug(ret.id + 'charge ' + ret.money);
                         post('http://127.0.0.1', 8000, obj, function(data) {
                             var data = JSON.parse(data);
                         });
