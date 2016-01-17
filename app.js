@@ -7,6 +7,7 @@ var http = require("http");
 var log = require('./log.js').helper;
 var redisClient = require('./redisClient');
 var post = require('./post');
+var querystring = require('querystring');
 
 var httpServer = http.createServer(function (req, res) {
     var dataChunks = undefined;
@@ -28,7 +29,7 @@ var httpServer = http.createServer(function (req, res) {
         }else{
             res.setHeader("Access-Control-Allow-Origin", "*");
             try {
-                var ret = JSON.parse(body.toString('utf-8'));
+                var ret = querystring.parse(body.toString('utf-8'));
                 redisClient.hincrby(ret.id + 'PLANT', "money", ret.money, function(err, redis) {
                     if (!err) {
                         var obj = {cmdID : '1030', uid : ret.id};
