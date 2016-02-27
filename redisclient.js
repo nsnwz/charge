@@ -16,7 +16,6 @@ var connect = function() {
   }
 };
 
-
 var redisDB = connect();
 
 var redis = module.exports;
@@ -40,6 +39,17 @@ redis.getKey = function(sType, cb) {
     redisDB.get(sType, function(err, res) {
         if (err != null) {
             console.log("[redisclient get socre error: " + err.message);
+            utils.invokeCallback(cb, err.message, null);
+        } else {
+            utils.invokeCallback(cb, null, res);
+        }
+    });
+};
+
+redis.expire = function(sType, nSeconds, cb) {
+    redisDB.expire(sType, nSeconds, function(err, res) {
+        if (err != null) {
+            console.log("[redisclient expire socre error: " + err.message);
             utils.invokeCallback(cb, err.message, null);
         } else {
             utils.invokeCallback(cb, null, res);

@@ -8,6 +8,7 @@ var log = require('./log.js').helper;
 var redisClient = require('./redisclient');
 var post = require('./post');
 var querystring = require('querystring');
+var async = require('async');
 
 var httpServer = http.createServer(function (req, res) {
     var dataChunks = undefined;
@@ -30,17 +31,32 @@ var httpServer = http.createServer(function (req, res) {
             res.setHeader("Access-Control-Allow-Origin", "*");
             try {
                 var ret = querystring.parse(body.toString('utf-8'));
-                redisClient.hincrby(ret.id + 'PLANT', "money", ret.money, function(err, redis) {
-                    if (!err) {
-                        var obj = {cmdID : '1030', uid : ret.id};
-                        log.writeDebug(ret.id + 'charge ' + ret.money);
-                        post('http://127.0.0.1', 8000, obj, function(data) {
-                            var data = JSON.parse(data);
+                log.writeDebug("charge " + ret.id + "|" + ret.money + "|" + ret.orderId);
+                async.waterfall([
+                    function(cb) {
+                        redisClient.getKey(ret.id + ret.orderId, function(err, redis) {
+                            if (redis) {
+                                return;
+                            } else {
+                                cb(null);
+                            }
                         });
-                    } else {
-
+                    }, function(cb) {
+                        redisClient.hincrby(ret.id + 'PLANT', "money", ret.money, function(err, redis) {
+                            if (!err) {
+                                cb(null);
+                            }
+                        });
+                    }, function(cb) {
+                        redisClient.updateKey(ret.id + ret.orderId, 1, function(err, redis) {
+                            if (!err) {
+                                cb(null);
+                            }
+                        })
+                    }, function(cb) {
+                        redisClient.expire(ret.id + ret.orderId, 60 * 60, function(err, redis) {});
                     }
-                });
+                ], function(err) {});
             } catch(err) {
                 var errorMsg = 'Error ' + new Date().toISOString() + req.body + err.stack + err.message;
                 log.writeErr(errorMsg);
