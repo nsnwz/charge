@@ -31,7 +31,7 @@ var httpServer = http.createServer(function (req, res) {
             res.setHeader("Access-Control-Allow-Origin", "*");
             try {
                 var ret = querystring.parse(body.toString('utf-8'));
-                log.writeDebug("charge " + ret.id + "|" + ret.money + "|" + ret.orderId);
+                log.writeDebug("charge " + ret.id + "|" + ret.money + "|" + ret.orderId + "|" + ret.serverId);
                 async.waterfall([
                     function(cb) {
                         redisClient.getKey(ret.id + ret.orderId, function(err, redis) {
@@ -42,7 +42,7 @@ var httpServer = http.createServer(function (req, res) {
                             }
                         });
                     }, function(cb) {
-                        redisClient.hincrby(ret.id + 'PLANT', "money", ret.money, function(err, redis) {
+                        redisClient.hincrby(ret.id + 'PLANT' + ret.serverId - 1, "money", ret.money, function(err, redis) {
                             if (!err) {
                                 cb(null);
                             }
