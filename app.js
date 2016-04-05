@@ -31,6 +31,13 @@ var httpServer = http.createServer(function (req, res) {
             res.setHeader("Access-Control-Allow-Origin", "*");
             try {
                 var ret = querystring.parse(body.toString('utf-8'));
+                if (!ret.id) { //hoowu
+                    ret.money = ret.amount;
+                    ret.orderId = ret.order_num;
+                    ret.id = ret.openid;
+                }
+
+
                 log.writeDebug("charge " + ret.id + "|" + ret.money + "|" + ret.orderId + "|" + ret.serverId);
                 async.waterfall([
                     function(cb) {
